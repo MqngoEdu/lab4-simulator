@@ -12,6 +12,39 @@ def execute(instruction, oldPC):
     global M, R
     
     # to do: add instructions here
+
+    b = get_bits(instruction, 0, 2)
+    a = get_bits(instruction, 2, 4)
+    icode = get_bits(instruction, 4, 7)
+    reserve_bit = get_bits(instruction, 7, 8)
+
+    print(f'\n{a = }, {b = }, {icode = }, {reserve_bit = }\n')
+
+    if reserve_bit == 1:
+        return oldPC
+
+    match icode:
+        case 0: R[a] = R[b]
+        case 1: R[a] += R[b]
+        case 2: R[a] &= R[b]
+        case 3: R[a] = M[R[b]]
+        case 4: M[R[b]] = R[a]
+        case 5:
+            match b:
+                case 0: R[a] = ~R[a]
+                case 1: R[a] = -R[a]
+                case 2: R[a] = not R[a]
+                case 3: R[a] = oldPC
+        case 6:
+            match b:
+                case 0: R[a] = M[oldPC + 1]
+                case 1: R[a] += M[oldPC + 1]
+                case 2: R[a] &= M[oldPC + 1]
+                case 3: R[a] = M[M[oldPC +1]]
+            return oldPC + 2
+        case 7:
+            if R[a] == 0 or R[a] >= 0x80:
+               return R[b]
     
     return oldPC + 1
 
