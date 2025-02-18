@@ -1,0 +1,2 @@
+64 //move pc + 1 to reg 01
+69 //move pc + 1 to reg 03
