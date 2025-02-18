@@ -1,0 +1,7 @@
+6C BE counter and starting place
+60 01 initialize first number
+64 01 initialize second number
+68 01 set one
+59 1B 1B 59
+43 1E 47 1E 11 14 put 00 and 01 into the values and move scale and add them
+68 1B 1B 06 7E set point to loop and loop
