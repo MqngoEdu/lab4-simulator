@@ -20,8 +20,22 @@ def execute(instruction, oldPC):
 
     print(f'\n{a = }, {b = }, {icode = }, {reserve_bit = }\n')
 
-    if reserve_bit == 1:
+    if reserve_bit == 1 and icode != 0:
         return oldPC
+    elif reserve_bit == 1 and icode == 0:
+        match b:
+            case 0: 
+                rsp -= 1
+                M[rsp] = R[a]
+            case 1:
+                R[a] = R[rsp]
+                rsp += 1
+            case 2:
+                M[rsp] = oldPC + 2
+                oldPC = M[oldPC + 1]
+                return
+            case 3:
+                oldPC = M[rsp]
 
     match icode:
         case 0: R[a] = R[b]
@@ -53,6 +67,8 @@ def execute(instruction, oldPC):
 # initialize memory and registers
 R = [0 for i in range(4)]
 M = [0 for i in range(256)]
+
+rsp = 0xFF # new!
 
 # initialize control registers; do not modify these directly
 _ir = 0
