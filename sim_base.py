@@ -9,7 +9,7 @@ def get_bits(number, idx1, idx2):
 
 def execute(instruction, oldPC):
     """Handles a single instruction, returning the new PC"""
-    global M, R
+    global M, R, rsp
     
     # to do: add instructions here
 
@@ -28,37 +28,42 @@ def execute(instruction, oldPC):
                 rsp -= 1
                 M[rsp] = R[a]
             case 1:
-                R[a] = R[rsp]
+                R[a] = M[rsp]
                 rsp += 1
             case 2:
+                rsp -= 1
                 M[rsp] = oldPC + 2
                 oldPC = M[oldPC + 1]
-                return
+                return oldPC
             case 3:
                 oldPC = M[rsp]
+                print(rsp)
+                print(M[rsp])
+                rsp += 1
 
-    match icode:
-        case 0: R[a] = R[b]
-        case 1: R[a] += R[b]
-        case 2: R[a] &= R[b]
-        case 3: R[a] = M[R[b]]
-        case 4: M[R[b]] = R[a]
-        case 5:
-            match b:
-                case 0: R[a] = ~R[a]
-                case 1: R[a] = -R[a]
-                case 2: R[a] = not R[a]
-                case 3: R[a] = oldPC
-        case 6:
-            match b:
-                case 0: R[a] = M[oldPC + 1]
-                case 1: R[a] += M[oldPC + 1]
-                case 2: R[a] &= M[oldPC + 1]
-                case 3: R[a] = M[M[oldPC +1]]
-            return oldPC + 2
-        case 7:
-            if R[a] == 0 or R[a] >= 0x80:
-               return R[b]
+    if reserve_bit != 1:
+        match icode:
+            case 0: R[a] = R[b]
+            case 1: R[a] += R[b]
+            case 2: R[a] &= R[b]
+            case 3: R[a] = M[R[b]]
+            case 4: M[R[b]] = R[a]
+            case 5:
+                match b:
+                    case 0: R[a] = ~R[a]
+                    case 1: R[a] = -R[a]
+                    case 2: R[a] = not R[a]
+                    case 3: R[a] = oldPC
+            case 6:
+                match b:
+                    case 0: R[a] = M[oldPC + 1]
+                    case 1: R[a] += M[oldPC + 1]
+                    case 2: R[a] &= M[oldPC + 1]
+                    case 3: R[a] = M[M[oldPC +1]]
+                return oldPC + 2
+            case 7:
+                if R[a] == 0 or R[a] >= 0x80:
+                    return R[b]
     
     return oldPC + 1
 
@@ -67,7 +72,6 @@ def execute(instruction, oldPC):
 # initialize memory and registers
 R = [0 for i in range(4)]
 M = [0 for i in range(256)]
-
 rsp = 0xFF # new!
 
 # initialize control registers; do not modify these directly
@@ -77,7 +81,7 @@ _pc = 0
 
 def cycle():
     """Implement one clock cycle"""
-    global M, R, _pc, _ir
+    global M, R, _pc, _ir, rsp
     
     # execute
     _ir = M[_pc]
@@ -86,6 +90,7 @@ def cycle():
     # enforce the fixed-length nature of values
     for i in range(len(R)): R[i] &= 0b11111111
     for i in range(len(M)): M[i] &= 0b11111111
+    rsp &= 0b11111111
     _pc &= 0b11111111
     
 
@@ -95,6 +100,7 @@ def showState():
     print('last instruction = 0b{:08b} (0x{:02x})'.format(_ir, _ir))
     for i in range(4):
         print('Register {:02b} = 0b{:08b} (0x{:02x})'.format(i, R[i], R[i]))
+    print('rsp = 0b{:08b} (0x{:02x})'.format(rsp, rsp))
     print('next PC = 0b{:08b} (0x{:02x})'.format(_pc, _pc))
     print('//////////////////////// Memory \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\')
     for i in range(0, 256, 16):
